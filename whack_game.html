@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>击打游戏 - 鼹鼠吃甲鱼</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #8BC34A;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #FFF;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 40px;
+        }
+
+        .character {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Q版鼹鼠 */
+        .mole {
+            position: relative;
+            width: 120px;
+            height: 100px;
+            background-color: #8D6E63;
+            border-radius: 60px 60px 20px 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .mole::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        .mole::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        .mole-nose {
+            position: absolute;
+            top: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 15px;
+            background-color: #E91E63;
+            border-radius: 50%;
+        }
+
+        .mole-mouth {
+            position: absolute;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 10px;
+            background-color: #000;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .mole-whiskers-left {
+            position: absolute;
+            top: 55px;
+            left: -10px;
+            width: 30px;
+            height: 2px;
+            background-color: #000;
+            transform: rotate(-10deg);
+        }
+
+        .mole-whiskers-left::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            width: 30px;
+            height: 2px;
+            background-color: #000;
+            transform: rotate(-5deg);
+        }
+
+        .mole-whiskers-right {
+            position: absolute;
+            top: 55px;
+            right: -10px;
+            width: 30px;
+            height: 2px;
+            background-color: #000;
+            transform: rotate(10deg);
+        }
+
+        .mole-whiskers-right::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            width: 30px;
+            height: 2px;
+            background-color: #000;
+            transform: rotate(5deg);
+        }
+
+        /* Q版甲鱼 - 优化版 */
+        .turtle {
+            position: relative;
+            width: 160px;
+            height: 120px;
+            transition: transform 0.3s ease;
+        }
+
+        .turtle-shell {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 140px;
+            height: 90px;
+            background-color: #4CAF50;
+            border-radius: 70px 70px 50px 50px;
+            box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* 壳的外层纹理 */
+        .turtle-shell::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 120px;
+            height: 70px;
+            background-color: #388E3C;
+            border-radius: 60px 60px 40px 40px;
+        }
+
+        /* 壳的内层花纹 */
+        .turtle-shell::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 50px;
+            background-color: #2E7D32;
+            border-radius: 40px 40px 30px 30px;
+            box-shadow: 0 0 0 10px #388E3C;
+        }
+
+        /* 头部 */
+        .turtle-head {
+            position: absolute;
+            top: 35px;
+            left: -15px;
+            width: 40px;
+            height: 35px;
+            background-color: #A5D6A7;
+            border-radius: 20px 15px 15px 20px;
+        }
+
+        /* 眼睛 */
+        .turtle-eyes {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            background-color: #000;
+            border-radius: 50%;
+            box-shadow: 18px 0 0 #000;
+        }
+
+        /* 眼睛高光 */
+        .turtle-eyes::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 3px;
+            height: 3px;
+            background-color: #FFF;
+            border-radius: 50%;
+            box-shadow: 18px 0 0 #FFF;
+        }
+
+        /* 嘴巴 */
+        .turtle-mouth {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            width: 10px;
+            height: 5px;
+            background-color: #FF8A65;
+            border-radius: 0 0 5px 5px;
+        }
+
+        /* 前腿 */
+        .turtle-legs-front {
+            position: absolute;
+            top: 70px;
+            left: 15px;
+            width: 25px;
+            height: 35px;
+            background-color: #A5D6A7;
+            border-radius: 15px;
+            transform: rotate(25deg);
+            box-shadow: inset 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* 后腿 */
+        .turtle-legs-back {
+            position: absolute;
+            top: 70px;
+            right: 15px;
+            width: 25px;
+            height: 35px;
+            background-color: #A5D6A7;
+            border-radius: 15px;
+            transform: rotate(-25deg);
+            box-shadow: inset -2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* 尾巴 */
+        .turtle-tail {
+            position: absolute;
+            top: 50px;
+            right: -5px;
+            width: 20px;
+            height: 12px;
+            background-color: #A5D6A7;
+            border-radius: 0 6px 6px 0;
+            transform: rotate(10deg);
+        }
+
+        /* 额外的壳细节 */
+        .turtle-shell-details {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: 10px;
+            height: 10px;
+            background-color: #2E7D32;
+            border-radius: 50%;
+            box-shadow: 30px 0 0 #2E7D32, 60px 0 0 #2E7D32,
+                        0 20px 0 #2E7D32, 30px 20px 0 #2E7D32, 60px 20px 0 #2E7D32;
+        }
+
+        /* 击打按钮 */
+        .buttons {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #FFF;
+            background-color: #FF5722;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #E64A19;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 击打动画 */
+        @keyframes hit {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.8) rotate(10deg); }
+            100% { transform: scale(1); }
+        }
+
+        .hit-animation {
+            animation: hit 0.5s ease;
+        }
+
+        /* 分数显示 */
+        .score {
+            background-color: #FFF;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .game-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>鼹鼠 & 甲鱼 击打游戏</h1>
+    
+    <div class="game-container">
+        <div class="character">
+            <div class="mole" id="mole">
+                <div class="mole-nose"></div>
+                <div class="mole-mouth"></div>
+                <div class="mole-whiskers-left"></div>
+                <div class="mole-whiskers-right"></div>
+            </div>
+            <p style="margin-top: 10px; font-weight: bold; color: #FFF;">鼹鼠</p>
+        </div>
+        
+        <div class="character">
+            <div class="turtle" id="turtle">
+                <div class="turtle-shell">
+                    <div class="turtle-shell-details"></div>
+                </div>
+                <div class="turtle-head">
+                    <div class="turtle-eyes"></div>
+                    <div class="turtle-mouth"></div>
+                </div>
+                <div class="turtle-legs-front"></div>
+                <div class="turtle-legs-back"></div>
+                <div class="turtle-tail"></div>
+            </div>
+            <p style="margin-top: 10px; font-weight: bold; color: #FFF;">甲鱼</p>
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <button id="hitMoleBtn">击打鼹鼠</button>
+        <button id="hitTurtleBtn">击打甲鱼</button>
+    </div>
+    
+    <div class="score">
+        分数: <span id="score">0</span>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const mole = document.getElementById('mole');
+        const turtle = document.getElementById('turtle');
+        const hitMoleBtn = document.getElementById('hitMoleBtn');
+        const hitTurtleBtn = document.getElementById('hitTurtleBtn');
+        const scoreElement = document.getElementById('score');
+        
+        let score = 0;
+        
+        // 击打动画函数
+        function playHitAnimation(element) {
+            // 添加动画类
+            element.classList.add('hit-animation');
+            
+            // 播放击打音效（如果有）
+            // const audio = new Audio('hit.mp3');
+            // audio.play();
+            
+            // 移除动画类以便下次播放
+            setTimeout(() => {
+                element.classList.remove('hit-animation');
+            }, 500);
+        }
+        
+        // 击打鼹鼠
+        hitMoleBtn.addEventListener('click', () => {
+            playHitAnimation(mole);
+            score += 10;
+            scoreElement.textContent = score;
+        });
+        
+        // 击打甲鱼
+        hitTurtleBtn.addEventListener('click', () => {
+            playHitAnimation(turtle);
+            score += 10;
+            scoreElement.textContent = score;
+        });
+        
+        // 允许直接点击角色进行击打
+        mole.addEventListener('click', () => {
+            playHitAnimation(mole);
+            score += 10;
+            scoreElement.textContent = score;
+        });
+        
+        turtle.addEventListener('click', () => {
+            playHitAnimation(turtle);
+            score += 10;
+            scoreElement.textContent = score;
+        });
+    </script>
+</body>
+</html>
