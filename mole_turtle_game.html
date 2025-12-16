@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鼹鼠与甲鱼 - 趣味休闲游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #4a7c59;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 游戏容器 */
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* 游戏信息栏 */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e8f5e8;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .score {
+            color: #4caf50;
+        }
+
+        .timer {
+            color: #ff9800;
+        }
+
+        /* 游戏场地 */
+        .game-board {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #81c784;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* 背景元素 */
+        .background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 草地 */
+        .grass {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background-color: #a5d6a7;
+        }
+
+        /* 洞穴 - 鼹鼠刷新点 */
+        .hole {
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background-color: #4e342e;
+            border-radius: 50% 50% 20px 20px;
+            bottom: 150px;
+        }
+
+        /* 池塘 - 甲鱼刷新点 */
+        .pond {
+            position: absolute;
+            width: 100px;
+            height: 80px;
+            background-color: #4fc3f7;
+            border-radius: 50% 50% 0 0;
+            bottom: 150px;
+        }
+
+        /* 随机定位洞穴 */
+        .hole:nth-child(1) { left: 10%; }
+        .hole:nth-child(2) { left: 35%; }
+        .hole:nth-child(3) { left: 60%; }
+        .hole:nth-child(4) { left: 85%; }
+
+        /* 随机定位池塘 */
+        .pond:nth-child(1) { left: 15%; }
+        .pond:nth-child(2) { left: 45%; }
+        .pond:nth-child(3) { left: 75%; }
+
+        /* 角色容器 */
+        .characters {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* 角色通用样式 */
+        .character {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Q版鼹鼠 */
+        .mole {
+            bottom: 150px;
+            transform: translateY(100%);
+        }
+
+        .mole-body {
+            width: 70px;
+            height: 50px;
+            background-color: #795548;
+            border-radius: 50% 50% 30% 30%;
+            position: relative;
+        }
+
+        .mole-face {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .mole-eyes {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+
+        .mole-eye {
+            width: 8px;
+            height: 8px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        .mole-nose {
+            width: 12px;
+            height: 8px;
+            background-color: #f44336;
+            border-radius: 50%;
+            margin: 0 auto;
+        }
+
+        .mole-mouth {
+            width: 20px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 0 0 10px 10px;
+            margin: 5px auto 0;
+        }
+
+        /* 鼹鼠爪子 */
+        .mole-paws {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            width: 100%;
+            bottom: 5px;
+        }
+
+        .mole-paw {
+            width: 15px;
+            height: 8px;
+            background-color: #795548;
+            border-radius: 5px;
+        }
+
+        .mole-paw.left {
+            margin-left: -5px;
+        }
+
+        .mole-paw.right {
+            margin-right: -5px;
+        }
+
+        /* 鼹鼠出现动画 */
+        .mole.appear {
+            transform: translateY(0);
+        }
+
+        /* Q版甲鱼 */
+        .turtle {
+            bottom: 150px;
+            transform: translateY(100%);
+        }
+
+        .turtle-body {
+            width: 90px;
+            height: 70px;
+            position: relative;
+        }
+
+        .turtle-shell {
+            width: 90px;
+            height: 60px;
+            background-color: #4caf50;
+            border-radius: 45px 45px 25px 25px;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .turtle-shell-pattern {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background-color: #388e3c;
+            border-radius: 35px 35px 15px 15px;
+        }
+
+        .turtle-head {
+            width: 30px;
+            height: 25px;
+            background-color: #81c784;
+            border-radius: 15px 15px 0 0;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .turtle-eyes {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .turtle-eye {
+            width: 5px;
+            height: 5px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+
+        .turtle-tail {
+            width: 15px;
+            height: 10px;
+            background-color: #81c784;
+            border-radius: 0 5px 5px 0;
+            position: absolute;
+            bottom: 10px;
+            right: -15px;
+        }
+
+        /* 甲鱼出现动画 */
+        .turtle.appear {
+            transform: translateY(0);
+        }
+
+        /* 游戏控制区 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        /* 按钮样式 */
+        button {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #bdbdbd;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 游戏结束界面 */
+        .game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .game-over.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .game-over-content {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .game-over-title {
+            color: #f44336;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #424242;
+        }
+
+        .comment {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #757575;
+        }
+
+        /* 动画效果 */
+        @keyframes mole-appear {
+            0% { transform: translateY(100%); }
+            50% { transform: translateY(0); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes turtle-appear {
+            0% { transform: translateY(100%); }
+            50% { transform: translateY(0); }
+            100% { transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .character.shake {
+            animation: shake 0.5s ease;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .game-container {
+                padding: 15px;
+            }
+            
+            .game-info {
+                font-size: 1rem;
+            }
+            
+            .game-board {
+                height: 350px;
+            }
+            
+            .hole, .pond {
+                width: 60px;
+                height: 45px;
+            }
+            
+            .mole-body {
+                width: 60px;
+                height: 40px;
+            }
+            
+            .turtle-body {
+                width: 80px;
+                height: 60px;
+            }
+            
+            .turtle-shell {
+                width: 80px;
+                height: 50px;
+            }
+            
+            button {
+                padding: 12px 30px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>鼹鼠与甲鱼 - 趣味休闲游戏</h1>
+    
+    <div class="game-container">
+        <!-- 游戏信息栏 -->
+        <div class="game-info">
+            <div class="score">分数: <span id="score">0</span></div>
+            <div class="timer">时间: <span id="time">60</span>秒</div>
+        </div>
+        
+        <!-- 游戏场地 -->
+        <div class="game-board">
+            <!-- 背景元素 -->
+            <div class="background">
+                <!-- 草地 -->
+                <div class="grass"></div>
+                
+                <!-- 洞穴 - 鼹鼠刷新点 -->
+                <div class="holes">
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                    <div class="hole"></div>
+                </div>
+                
+                <!-- 池塘 - 甲鱼刷新点 -->
+                <div class="ponds">
+                    <div class="pond"></div>
+                    <div class="pond"></div>
+                    <div class="pond"></div>
+                </div>
+            </div>
+            
+            <!-- 角色容器 -->
+            <div class="characters" id="characters"></div>
+        </div>
+        
+        <!-- 游戏控制区 -->
+        <div class="controls">
+            <button id="startBtn">开始游戏</button>
+            <button id="pauseBtn" disabled>暂停</button>
+        </div>
+    </div>
+    
+    <!-- 游戏结束界面 -->
+    <div class="game-over" id="gameOver">
+        <div class="game-over-content">
+            <div class="game-over-title">游戏结束！</div>
+            <div class="final-score">最终分数: <span id="finalScore">0</span></div>
+            <div class="comment" id="comment"></div>
+            <button onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <script>
+        // 获取DOM元素
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const scoreElement = document.getElementById('score');
+        const timeElement = document.getElementById('time');
+        const charactersContainer = document.getElementById('characters');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const commentElement = document.getElementById('comment');
+        
+        // 游戏变量
+        let score = 0;
+        let timeLeft = 60;
+        let gameInterval;
+        let spawnInterval;
+        let isGameActive = false;
+        let isPaused = false;
+        
+        // 音效（使用Web Audio API）
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 创建音效函数
+        function playSound(frequency, duration, type = 'sine') {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // 鼹鼠被点击音效
+        function playMoleSound() {
+            playSound(800, 0.2, 'sine');
+        }
+        
+        // 甲鱼被点击音效
+        function playTurtleSound() {
+            playSound(200, 0.3, 'sawtooth');
+        }
+        
+        // 倒计时音效
+        function playTickSound() {
+            playSound(400, 0.1, 'square');
+        }
+        
+        // 初始化游戏
+        function initGame() {
+            score = 0;
+            timeLeft = 60;
+            scoreElement.textContent = score;
+            timeElement.textContent = timeLeft;
+            charactersContainer.innerHTML = '';
+            gameOverElement.classList.remove('show');
+        }
+        
+        // 开始游戏
+        function startGame() {
+            if (isGameActive) return;
+            
+            initGame();
+            isGameActive = true;
+            isPaused = false;
+            
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            // 开始倒计时
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timeElement.textContent = timeLeft;
+                playTickSound();
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            // 开始生成角色
+            spawnCharacters();
+        }
+        
+        // 暂停游戏
+        function pauseGame() {
+            if (!isGameActive || isPaused) return;
+            
+            isPaused = true;
+            clearInterval(gameInterval);
+            clearInterval(spawnInterval);
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+        }
+        
+        // 恢复游戏
+        function resumeGame() {
+            if (!isGameActive || !isPaused) return;
+            
+            isPaused = false;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            // 恢复倒计时
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                timeElement.textContent = timeLeft;
+                playTickSound();
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            // 恢复生成角色
+            spawnCharacters();
+        }
+        
+        // 结束游戏
+        function endGame() {
+            isGameActive = false;
+            clearInterval(gameInterval);
+            clearInterval(spawnInterval);
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            
+            // 显示最终分数
+            finalScoreElement.textContent = score;
+            
+            // 显示评语
+            if (score >= 500) {
+                commentElement.textContent = '鼹鼠捕捉大师！';
+            } else if (score >= 300) {
+                commentElement.textContent = '表现不错！';
+            } else if (score >= 100) {
+                commentElement.textContent = '下次避开甲鱼呀～';
+            } else {
+                commentElement.textContent = '继续加油！';
+            }
+            
+            // 显示游戏结束界面
+            gameOverElement.classList.add('show');
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            gameOverElement.classList.remove('show');
+            startGame();
+        }
+        
+        // 生成角色
+        function spawnCharacters() {
+            // 根据游戏时间调整生成频率
+            const spawnRate = timeLeft <= 30 ? Math.random() * 0.7 + 0.8 : Math.random() * 1 + 1;
+            
+            spawnInterval = setTimeout(() => {
+                if (!isGameActive || isPaused) return;
+                
+                // 随机选择生成鼹鼠或甲鱼
+                const isMole = Math.random() > 0.3;
+                
+                if (isMole) {
+                    spawnMole();
+                } else {
+                    spawnTurtle();
+                }
+                
+                // 继续生成角色
+                spawnCharacters();
+            }, spawnRate * 1000);
+        }
+        
+        // 生成鼹鼠
+        function spawnMole() {
+            const holes = document.querySelectorAll('.hole');
+            const randomHole = holes[Math.floor(Math.random() * holes.length)];
+            const holeRect = randomHole.getBoundingClientRect();
+            const containerRect = charactersContainer.getBoundingClientRect();
+            
+            // 创建鼹鼠元素
+            const moleElement = document.createElement('div');
+            moleElement.className = 'character mole';
+            moleElement.style.left = `${holeRect.left - containerRect.left + 5}px`;
+            moleElement.innerHTML = `
+                <div class="mole-body">
+                    <div class="mole-face">
+                        <div class="mole-eyes">
+                            <div class="mole-eye"></div>
+                            <div class="mole-eye"></div>
+                        </div>
+                        <div class="mole-nose"></div>
+                        <div class="mole-mouth"></div>
+                    </div>
+                    <div class="mole-paws">
+                        <div class="mole-paw left"></div>
+                        <div class="mole-paw right"></div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加点击事件
+            moleElement.addEventListener('click', () => {
+                if (!isGameActive || isPaused) return;
+                
+                score += 10;
+                scoreElement.textContent = score;
+                playMoleSound();
+                
+                // 移除鼹鼠
+                moleElement.classList.remove('appear');
+                setTimeout(() => {
+                    if (moleElement.parentNode) {
+                        moleElement.parentNode.removeChild(moleElement);
+                    }
+                }, 300);
+            });
+            
+            // 添加到容器
+            charactersContainer.appendChild(moleElement);
+            
+            // 显示鼹鼠
+            setTimeout(() => {
+                moleElement.classList.add('appear');
+            }, 100);
+            
+            // 自动隐藏鼹鼠
+            setTimeout(() => {
+                if (moleElement.parentNode) {
+                    moleElement.classList.remove('appear');
+                    setTimeout(() => {
+                        if (moleElement.parentNode) {
+                            moleElement.parentNode.removeChild(moleElement);
+                        }
+                    }, 300);
+                }
+            }, Math.random() * 2000 + 1000);
+        }
+        
+        // 生成甲鱼
+        function spawnTurtle() {
+            const ponds = document.querySelectorAll('.pond');
+            const randomPond = ponds[Math.floor(Math.random() * ponds.length)];
+            const pondRect = randomPond.getBoundingClientRect();
+            const containerRect = charactersContainer.getBoundingClientRect();
+            
+            // 创建甲鱼元素
+            const turtleElement = document.createElement('div');
+            turtleElement.className = 'character turtle';
+            turtleElement.style.left = `${pondRect.left - containerRect.left + 5}px`;
+            turtleElement.innerHTML = `
+                <div class="turtle-body">
+                    <div class="turtle-shell">
+                        <div class="turtle-shell-pattern"></div>
+                    </div>
+                    <div class="turtle-head">
+                        <div class="turtle-eyes">
+                            <div class="turtle-eye"></div>
+                            <div class="turtle-eye"></div>
+                        </div>
+                    </div>
+                    <div class="turtle-tail"></div>
+                </div>
+            `;
+            
+            // 添加点击事件
+            turtleElement.addEventListener('click', () => {
+                if (!isGameActive || isPaused) return;
+                
+                score -= 5;
+                scoreElement.textContent = Math.max(0, score);
+                playTurtleSound();
+                
+                // 震动效果
+                turtleElement.classList.add('shake');
+                setTimeout(() => {
+                    turtleElement.classList.remove('shake');
+                }, 500);
+            });
+            
+            // 添加到容器
+            charactersContainer.appendChild(turtleElement);
+            
+            // 显示甲鱼
+            setTimeout(() => {
+                turtleElement.classList.add('appear');
+            }, 100);
+            
+            // 自动隐藏甲鱼
+            setTimeout(() => {
+                if (turtleElement.parentNode) {
+                    turtleElement.classList.remove('appear');
+                    setTimeout(() => {
+                        if (turtleElement.parentNode) {
+                            turtleElement.parentNode.removeChild(turtleElement);
+                        }
+                    }, 300);
+                }
+            }, Math.random() * 2000 + 2000);
+        }
+        
+        // 按钮事件
+        startBtn.addEventListener('click', () => {
+            if (isPaused) {
+                resumeGame();
+            } else {
+                startGame();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', pauseGame);
+        
+        // 初始化游戏
+        initGame();
+    </script>
+</body>
+</html>
